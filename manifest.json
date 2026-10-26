@@ -1,9 +1,10 @@
 {
-  "name": "Gym AI",
-  "short_name": "Gym AI",
-  "start_url": "index.html",
+  "name": "NEONFIT Gym AI",
+  "short_name": "NEONFIT",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
-  "description": "Bài tập tập gym theo cấp độ, có minh họa, offline"
+  "background_color": "#0b0d10",
+  "theme_color": "#c7ff3d",
+  "description": "Theo dõi buổi tập, tiến bộ, PR và mục tiêu cá nhân."
 }
