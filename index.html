@@ -348,7 +348,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   const GOALS_KEY = 'gymai.goals.v1';
   const TIMER_KEY = 'gymai.timer.v1';
   const DATA_KEYS = [LS_KEY, PLAN_KEY, 'gymai.combos.v2', 'gymai.profile.v1', 'gymai.program.v1', FAV_KEY, GOALS_KEY, TIMER_KEY];
-  let timerConfig=load(TIMER_KEY,{exercise:45,between:60});
+  let timerConfig;
 
   const st = { level:'all', q:'', muscle:'', equip:'', planLevel:'beginner', planMuscles:new Set(['chest','lats','quadriceps']), planEquip:new Set(['body only','dumbbell','barbell','cable','machine','kettlebells','bands','other','None']) };
 
@@ -356,6 +356,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const load = (k,d)=>{ try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d} };
   const save = (k,v)=>{ try{localStorage.setItem(k,JSON.stringify(v))}catch(e){} };
+  timerConfig=load(TIMER_KEY,{exercise:45,between:60});
   const muscleName = m => MUSCLE_VI[m] || m;
   const equipName = e => EQUIP_VI[e] || e || 'Khác';
   const levelTag = l => `<span class="tag lv-${l}">${LEVELS[l]?LEVELS[l].label:l}</span>`;
