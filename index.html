@@ -135,6 +135,15 @@ td input{width:76px;padding:8px;min-width:0;font-size:14px}
 h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-size:16px}
 .card:hover{box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 0 1px rgba(200,255,61,.35),0 0 30px rgba(200,255,61,.12)}
 
+.goal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:8px 0 12px}
+.goal-card{border:1px solid var(--line);border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;background:rgba(255,255,255,.02);transition:transform .25s,border-color .3s,box-shadow .3s,background .3s}
+.goal-card:hover{transform:translateY(-2px);border-color:rgba(200,255,61,.35)}
+.goal-card.on{border-color:var(--accent);background:rgba(200,255,61,.07);box-shadow:0 0 22px rgba(200,255,61,.18)}
+.goal-card svg{width:86px;height:auto;display:block;margin:0 auto 8px}
+.goal-card .base{fill:#243041;stroke:#334155;stroke-width:1}
+.goal-card .hl{fill:var(--accent);opacity:.9;filter:drop-shadow(0 0 4px rgba(200,255,61,.6))}
+.goal-card b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;color:#f2f7e8;line-height:1.3}
+.goal-card span{font-size:11px;color:var(--muted);line-height:1.4;display:block}
 /* Điện thoại: thanh điều hướng dưới cùng */
 @media (max-width:700px){
   header{backdrop-filter:none;background:var(--bg);padding-top:16px}
@@ -825,6 +834,56 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
     return {goalId:goal.id, goalName:goal.name, gender:pf.gender, level:lv, bw:pf.bw, weeks: pf.period==='week' ? 1 : 4, days:days.map(d=>({name:d.name, muscles:d.muscles, items:d.items}))};
   }
 
+  // ---------- Minh họa dáng người theo mục tiêu ----------
+  const GOAL_DESC = {
+    toned:'Đường nét rõ, vai và đùi săn chắc', glutes:'Hông nâng, mông tròn, chân thon',
+    fatloss:'Giảm mỡ, cơ thể gọn hơn', posture:'Vai thẳng, cổ và lưng trên chắc',
+    mass:'Tăng khối lượng cơ toàn thân', vshape:'Vai rộng, ngực nở, eo gọn',
+    arms:'Tay to, cơ tay rõ', cut:'Bụng rõ, cơ thể khô ráo'
+  };
+  const GOAL_ZONES = {
+    toned:['shoulders','hips','thighs'], glutes:['hips','thighs','abs'],
+    fatloss:['abs','shoulders','thighs','arms'], posture:['traps','shoulders','sides'],
+    mass:['chest','shoulders','arms','thighs'], vshape:['shoulders','chest','sides'],
+    arms:['arms','shoulders'], cut:['abs','chest']
+  };
+  function bodySVG(gender, zoneIds){
+    const f = gender==='f';
+    const torso = f ? 'M36 50 L84 50 L78 84 L86 112 L34 112 L42 84 Z' : 'M30 50 L90 50 L84 110 L36 110 Z';
+    const hips  = f ? 'M36 110 L84 110 L88 132 L32 132 Z' : 'M40 110 L80 110 L78 128 L42 128 Z';
+    const Z = {
+      chest: f ? '<path d="M42 58 Q60 66 78 58 L78 76 Q60 80 42 76 Z"/>' : '<path d="M36 56 Q60 68 84 56 L84 78 Q60 84 36 78 Z"/>',
+      shoulders: '<circle cx="32" cy="54" r="10"/><circle cx="88" cy="54" r="10"/>',
+      traps: '<path d="M46 40 L74 40 L84 52 L36 52 Z"/>',
+      arms: '<rect x="18" y="56" width="12" height="30" rx="6"/><rect x="90" y="56" width="12" height="30" rx="6"/>',
+      sides: '<rect x="30" y="64" width="6" height="34" rx="3"/><rect x="84" y="64" width="6" height="34" rx="3"/>',
+      abs: '<rect x="50" y="84" width="20" height="26" rx="5"/>',
+      hips: '<path d="'+hips+'"/>',
+      thighs: '<rect x="42" y="130" width="16" height="50" rx="8"/><rect x="62" y="130" width="16" height="50" rx="8"/>'
+    };
+    const hl = zoneIds.map(z=>Z[z]||'').join('');
+    return `<svg viewBox="0 0 120 240" aria-hidden="true">
+      <circle class="base" cx="60" cy="24" r="14"/>
+      <rect class="base" x="54" y="36" width="12" height="12"/>
+      <path class="base" d="${torso}"/>
+      <path class="base" d="${hips}"/>
+      <rect class="base" x="18" y="54" width="12" height="56" rx="6"/>
+      <rect class="base" x="90" y="54" width="12" height="56" rx="6"/>
+      <rect class="base" x="42" y="128" width="16" height="56" rx="8"/>
+      <rect class="base" x="62" y="128" width="16" height="56" rx="8"/>
+      <rect class="base" x="43" y="186" width="14" height="46" rx="7"/>
+      <rect class="base" x="63" y="186" width="14" height="46" rx="7"/>
+      <g class="hl">${hl}</g>
+    </svg>`;
+  }
+  function goalCards(){
+    return `<div class="goal-grid">${GOALS[profile.gender].map(g=>`
+      <div class="goal-card ${profile.goal===g.id?'on':''}" data-act="pgoal" data-v="${g.id}">
+        ${bodySVG(profile.gender, GOAL_ZONES[g.id]||[])}
+        <b>${esc(g.name)}</b><span>${esc(GOAL_DESC[g.id]||'')}</span>
+      </div>`).join('')}</div>`;
+  }
+
   function renderProgramTab(){
     if(!GOALS[profile.gender].find(g=>g.id===profile.goal)) profile.goal = GOALS[profile.gender][0].id;
     profile.period = profile.period || 'month';
@@ -842,7 +901,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
         <div class="muted" style="margin:8px 0 4px">Trình độ</div>
         <div class="chips">${Object.entries(LEVELS).map(([k,v])=>chip('pl',k,v.label,profile.level===k)).join('')}</div>
         <div class="muted" style="margin:8px 0 4px">Dáng người muốn đạt</div>
-        <div class="chips">${GOALS[profile.gender].map(g=>chip('pgoal',g.id,g.name,profile.goal===g.id)).join('')}</div>
+        ${goalCards()}
         <div class="muted" style="margin:8px 0 4px">Số buổi mỗi tuần</div>
         <div class="chips">${[2,3,4,5,6].map(n=>chip('pd',String(n),n+' buổi',profile.days===n)).join('')}</div>${profile.days>=5 && profile.level==='beginner' ? '<div class="muted" style="margin-top:8px">Người mới nên bắt đầu với 2–3 buổi để cơ thể kịp thích nghi.</div>' : ''}
         <div class="muted" style="margin:8px 0 4px">Dụng cụ có sẵn</div>
