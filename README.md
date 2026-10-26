@@ -2,7 +2,7 @@
 
 Bài tập gym theo cấp độ (Người mới, Trung cấp, Nâng cao), có ảnh minh họa, tạo giáo án, ghi tạ/reps và gợi ý tăng tạ.
 
-Phiên bản này bổ sung các luồng quản lý dữ liệu lấy cảm hứng từ OpenGym và AEgir: dashboard tổng quan, chỉ số 7 ngày, bản đồ khối lượng nhóm cơ, khu vực Tiến bộ với biểu đồ 8 tuần, PRs, mục tiêu cá nhân và lịch tập cả năm, đánh dấu bài yêu thích, lọc nhanh trong thư viện, xuất/nhập toàn bộ dữ liệu dạng JSON, xóa dữ liệu cục bộ có xác nhận, double progression theo khoảng reps, 1RM ước tính và tính đĩa tạ đòn. Ứng dụng vẫn chạy độc lập, không cần máy chủ và dữ liệu tập luyện được lưu trong trình duyệt.
+Phiên bản này bổ sung các luồng quản lý dữ liệu lấy cảm hứng từ OpenGym và AEgir: dashboard tổng quan, chỉ số 7 ngày, bản đồ khối lượng nhóm cơ, khu vực Tiến bộ với biểu đồ 8 tuần, PRs, mục tiêu cá nhân và lịch tập cả năm, AI Coach offline tư vấn theo chiều cao/cân nặng/vóc dáng/mục tiêu, lịch buổi tập theo ngày-giờ và ngày nghỉ, đánh dấu bài yêu thích, lọc nhanh trong thư viện, xuất/nhập toàn bộ dữ liệu dạng JSON, xóa dữ liệu cục bộ có xác nhận, double progression theo khoảng reps, 1RM ước tính và tính đĩa tạ đòn. Ứng dụng vẫn chạy độc lập, không cần máy chủ và dữ liệu tập luyện được lưu trong trình duyệt.
 
 ## Các file
 - index.html: toàn bộ app, đã gồm dữ liệu 876 bài tập và logic ứng dụng
