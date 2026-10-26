@@ -8,8 +8,8 @@
 <title>Gym AI - Bài tập theo cấp độ</title>
 <style>
 :root{
-  --bg:#07090d; --bg2:#0d1117; --panel:#121821; --panel2:#1a2230; --line:rgba(255,255,255,.08);
-  --text:#ece7dc; --muted:#8a919e; --gold:#c8ff3d; --accent:#c8ff3d; --teal:#2fb8a6; --warn:#e8793a; --danger:#e5484d;
+  --bg:#0c0716; --bg2:#151024; --panel:#171129; --panel2:#22173a; --line:rgba(255,255,255,.1);
+  --text:#f4efff; --muted:#aaa0bd; --gold:#c8ff3d; --accent:#c8ff3d; --teal:#43d4c2; --warn:#e8793a; --danger:#e5484d; --purple:#9b7cff;
 }
 *{box-sizing:border-box}
 html{background:var(--bg)}
@@ -113,6 +113,22 @@ td input{width:76px;padding:8px;min-width:0;font-size:14px}
 #comboOut .grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 #comboOut .card .row .btn{padding:8px 11px;font-size:10px;letter-spacing:.14em}
 #comboOut .card .row{gap:6px}
+.dashboard{display:grid;gap:18px}
+.dash-hero{border:1px solid rgba(155,124,255,.28);border-radius:14px;padding:28px;background:radial-gradient(circle at 85% 15%,rgba(155,124,255,.28),transparent 42%),linear-gradient(135deg,#21143b,#111020);position:relative;overflow:hidden}
+.dash-hero:after{content:"";position:absolute;right:-70px;bottom:-90px;width:240px;height:240px;border:1px solid rgba(200,255,61,.16);border-radius:50%;box-shadow:0 0 0 28px rgba(200,255,61,.04),0 0 0 56px rgba(200,255,61,.025)}
+.dash-hero>*{position:relative;z-index:1}
+.dash-kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 10px}
+.dash-title{font-size:clamp(28px,6vw,48px);line-height:1.05;margin:0 0 10px;font-weight:900;max-width:620px}
+.dash-sub{color:#c7bfd5;line-height:1.6;max-width:600px;margin:0 0 18px}
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.dash-stat{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 12px}
+.dash-stat b{display:block;color:var(--gold);font-size:25px;line-height:1.1}.dash-stat span{display:block;color:var(--muted);font-size:10px;margin-top:5px;text-transform:uppercase;letter-spacing:.1em}
+.dash-panel{background:linear-gradient(180deg,rgba(23,17,41,.96),rgba(18,13,31,.96));border:1px solid var(--line);border-radius:12px;padding:18px}
+.dash-panel h2{font-size:14px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 4px}.dash-panel>p{color:var(--muted);font-size:12px;margin:0 0 16px}
+.dash-actions{display:flex;gap:10px;flex-wrap:wrap}.dash-actions .btn{flex:1;min-width:150px}
+.muscle-bars{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 20px}.muscle-bar{display:grid;grid-template-columns:100px 1fr 38px;gap:8px;align-items:center;font-size:12px}.muscle-bar label{color:#ddd5e8}.muscle-bar i{height:8px;border-radius:99px;background:#302244;overflow:hidden}.muscle-bar i:after{content:"";display:block;height:100%;width:var(--pct);background:linear-gradient(90deg,var(--purple),var(--teal));border-radius:inherit}.muscle-bar b{font-size:11px;color:var(--muted);text-align:right}
+.dash-list{display:grid;gap:8px}.dash-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid rgba(255,255,255,.07);border-radius:8px;background:rgba(255,255,255,.025)}
+@media (max-width:700px){.dash-stats{grid-template-columns:repeat(2,1fr)}.muscle-bars{grid-template-columns:1fr}.dash-hero{padding:22px 18px}}
 
 /* ===== Hero & nổi bật ===== */
 .hero{position:relative;text-align:center;padding:34px 8px 30px;overflow:hidden;border-radius:6px;margin-bottom:24px;border:1px solid rgba(200,255,61,.18);background:#0b1009}
@@ -170,7 +186,8 @@ h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transfo
   <h1 class="brand">Gym <span>AI</span></h1>
   <p class="tagline">Tập luyện · Cấp độ · Tiến bộ</p>
   <nav id="tabs">
-    <button data-tab="library" class="active">Thư viện</button>
+    <button data-tab="dashboard" class="active">Tổng quan</button>
+    <button data-tab="library">Thư viện</button>
     <button data-tab="plan">Tạo giáo án</button>
     <button data-tab="combo">Combo</button>
     <button data-tab="program">Liệu trình</button>
@@ -181,8 +198,13 @@ h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transfo
 </header>
 
 <main>
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <div id="dashboardOut"></div>
+  </section>
+
   <!-- LIBRARY -->
-  <section id="library">
+  <section id="library" hidden>
     <section class="hero">
       <div class="hero-bg"></div>
       <p class="eyebrow">Gym AI · Tập luyện thông minh</p>
@@ -324,12 +346,37 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   // ---------- Tabs ----------
   document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
     document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x===b));
-    ['library','plan','combo','program','workout','history','settings'].forEach(id=>$('#'+id).hidden = id!==b.dataset.tab);
+    ['dashboard','library','plan','combo','program','workout','history','settings'].forEach(id=>$('#'+id).hidden = id!==b.dataset.tab);
+    if(b.dataset.tab==='dashboard') renderDashboard();
     if(b.dataset.tab==='combo') renderComboTab();
     if(b.dataset.tab==='program') renderProgramTab();
     if(b.dataset.tab==='workout') renderWorkout();
     if(b.dataset.tab==='history') renderHistory();
   });
+
+  // ---------- Dashboard tổng quan ----------
+  function renderDashboard(){
+    const now=Date.now(), weekAgo=now-7*86400000;
+    const all=[]; Object.entries(getLog()).forEach(([id,entries])=>(entries||[]).forEach(e=>all.push({...e,id})));
+    const recent=all.filter(e=>new Date(e.date).getTime()>=weekAgo);
+    const days=[...new Set(recent.map(e=>new Date(e.date).toLocaleDateString('vi-VN')))];
+    const sets=recent.reduce((n,e)=>n+(e.sets||[]).filter(s=>s.r>0).length,0);
+    const volume=recent.reduce((n,e)=>n+(e.sets||[]).reduce((m,s)=>m+(Number(s.w)||0)*(Number(s.r)||0),0),0);
+    const muscles={}; recent.forEach(e=>{const x=EX.find(q=>q.id===e.id); (x?.primaryMuscles||[]).forEach(m=>muscles[m]=(muscles[m]||0)+(e.sets||[]).filter(s=>s.r>0).length);});
+    const muscleOrder=['chest','lats','quadriceps','hamstrings','glutes','shoulders','biceps','triceps','abdominals','calves'];
+    const bars=muscleOrder.map(m=>{const n=muscles[m]||0; return `<div class="muscle-bar"><label>${esc(muscleName(m))}</label><i style="--pct:${Math.min(100,n/10*100)}%"></i><b>${n}/10</b></div>`}).join('');
+    const latest=all.slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    const latestName=latest?.id?EX.find(x=>x.id===latest.id)?.name:'Chưa có buổi tập';
+    const best=all.reduce((out,e)=>{const rm=best1RM(e.id); return rm&&(!out||rm.value>out.value)?{...rm,name:EX.find(x=>x.id===e.id)?.name}:out},null);
+    $('#dashboardOut').innerHTML=`
+      <div class="dashboard">
+        <section class="dash-hero"><p class="dash-kicker">Gym AI · Trung tâm điều khiển</p><h1 class="dash-title">Tập đều hôm nay,<br><span style="color:var(--gold)">tiến bộ rõ mỗi tuần.</span></h1><p class="dash-sub">Theo dõi nhịp tập, khối lượng nhóm cơ và sức mạnh từ chính nhật ký offline của bạn.</p><div class="dash-actions"><button class="btn big" data-go="program">Tạo liệu trình</button><button class="btn ghost big" data-go="workout">Vào buổi tập</button></div></section>
+        <div class="dash-stats"><div class="dash-stat"><b>${days.length}</b><span>Buổi / 7 ngày</span></div><div class="dash-stat"><b>${sets}</b><span>Set hoàn thành</span></div><div class="dash-stat"><b>${volume?Math.round(volume).toLocaleString('vi-VN'):'—'}</b><span>Khối lượng kg×rep</span></div><div class="dash-stat"><b>${favourites.size}</b><span>Bài yêu thích</span></div></div>
+        <section class="dash-panel"><h2>Tuần này</h2><p>${days.length?`${days.length} ngày đã tập · ${sets} set có reps được ghi nhận.`:'Chưa có dữ liệu trong 7 ngày qua. Bắt đầu bằng một buổi tập ngắn.'}</p><div class="dash-list"><div class="dash-row"><span>Buổi gần nhất</span><b>${esc(latestName)}</b></div><div class="dash-row"><span>1RM tốt nhất</span><b>${best?`${esc(best.name)} · ${best.value} kg`:'Chưa đủ dữ liệu'}</b></div></div></section>
+        <section class="dash-panel"><h2>Bản đồ nhóm cơ</h2><p>Mục tiêu tham chiếu là 10 set/nhóm cơ trong 7 ngày. Màu càng đầy nghĩa là nhóm cơ càng gần mục tiêu.</p><div class="muscle-bars">${bars}</div></section>
+        <section class="dash-panel"><h2>Thao tác nhanh</h2><p>Chuyển thẳng tới nơi bạn cần.</p><div class="dash-actions"><button class="btn ghost" data-go="library">Khám phá bài tập</button><button class="btn ghost" data-go="combo">Dùng combo mẫu</button><button class="btn ghost" data-go="history">Xem lịch sử</button></div></section>
+      </div>`;
+  }
 
   // ---------- Library ----------
   function fillSelect(sel, items, allLabel){
@@ -1113,6 +1160,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   };
 
   // ---------- Init ----------
+  renderDashboard();
   renderLevelChips();
   renderLibrary();
   renderPlanControls();
