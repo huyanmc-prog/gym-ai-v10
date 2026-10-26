@@ -1,4 +1,4 @@
-const CACHE = 'gymai-v2';
+const CACHE = 'gymai-v3';
 self.addEventListener('install', e => {
   self.skipWaiting();
 });

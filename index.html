@@ -134,6 +134,12 @@ td input{width:76px;padding:8px;min-width:0;font-size:14px}
 .sheet h2{font-family:inherit;font-weight:800}
 h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-size:16px}
 .card:hover{box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 0 1px rgba(200,255,61,.35),0 0 30px rgba(200,255,61,.12)}
+.card .fav{position:absolute;top:8px;right:8px;width:34px;height:34px;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(7,9,13,.78);color:#cbd5e1;font-size:19px;line-height:1;cursor:pointer;z-index:2;transition:all .2s}
+.card .fav:hover,.card .fav.on{color:var(--gold);border-color:var(--gold);background:rgba(7,9,13,.94)}
+.backup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.backup-card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:4px;padding:18px}
+.backup-card h3{margin:0 0 8px;color:var(--gold);font-size:14px}
+.backup-card p{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 14px}
 
 .goal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:8px 0 12px}
 .goal-card{border:1px solid var(--line);border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;background:rgba(255,255,255,.02);transition:transform .25s,border-color .3s,box-shadow .3s,background .3s}
@@ -170,6 +176,7 @@ h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transfo
     <button data-tab="program">Liệu trình</button>
     <button data-tab="workout">Buổi tập</button>
     <button data-tab="history">Lịch sử</button>
+    <button data-tab="settings">Cài đặt</button>
   </nav>
 </header>
 
@@ -197,6 +204,9 @@ h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transfo
       <input id="search" placeholder="Tìm bài tập (ví dụ: squat, push-up)...">
       <select id="muscleSel"></select>
       <select id="equipSel"></select>
+    </div>
+    <div class="row" style="justify-content:center;margin:8px 0 12px">
+      <button class="btn ghost" id="favFilter">☆ Chỉ xem yêu thích</button>
     </div>
     <div class="muted" id="count" style="margin-bottom:10px"></div>
     <div class="grid" id="grid"></div>
@@ -242,6 +252,30 @@ h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transfo
   <section id="history" hidden>
     <div id="historyOut"></div>
   </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" hidden>
+    <h2 class="section">Dữ liệu & thiết lập</h2>
+    <div class="backup-grid">
+      <div class="backup-card">
+        <h3>Sao lưu dữ liệu</h3>
+        <p>Tải xuống giáo án, combo, hồ sơ, bài yêu thích và lịch sử tập luyện dưới dạng một tệp JSON.</p>
+        <button class="btn" id="exportBtn">Xuất dữ liệu</button>
+      </div>
+      <div class="backup-card">
+        <h3>Khôi phục dữ liệu</h3>
+        <p>Nhập lại tệp JSON đã xuất từ Gym AI trên thiết bị này hoặc thiết bị khác.</p>
+        <input id="importFile" type="file" accept="application/json,.json" hidden>
+        <button class="btn" id="importBtn">Nhập dữ liệu</button>
+      </div>
+      <div class="backup-card">
+        <h3>Xóa dữ liệu cục bộ</h3>
+        <p>Xóa lịch sử, combo, giáo án, hồ sơ và bài yêu thích trên trình duyệt hiện tại.</p>
+        <button class="btn warn" id="clearDataBtn">Xóa dữ liệu</button>
+      </div>
+    </div>
+    <div class="empty" style="padding:35px 10px 10px">Dữ liệu chỉ nằm trong trình duyệt của bạn. Hãy xuất bản sao trước khi xóa bộ nhớ trình duyệt.</div>
+  </section>
 </main>
 
 <div class="modal" id="modal">
@@ -268,6 +302,8 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   const EQUIP_VI = {'body only':'Không dụng cụ',barbell:'Tạ đòn',dumbbell:'Tạ đơn',cable:'Cáp (ròng rọc)',machine:'Máy tập',kettlebells:'Kettlebell',bands:'Dây kháng lực','medicine ball':'Bóng thuốc','exercise ball':'Bóng tập','foam roll':'Con lăn xốp','e-z curl bar':'Thanh EZ',other:'Khác',None:'Khác'};
   const LS_KEY = 'gymai.log.v1';
   const PLAN_KEY = 'gymai.plan.v1';
+  const FAV_KEY = 'gymai.favourites.v1';
+  const DATA_KEYS = [LS_KEY, PLAN_KEY, 'gymai.combos.v2', 'gymai.profile.v1', 'gymai.program.v1', FAV_KEY];
 
   const st = { level:'all', q:'', muscle:'', equip:'', planLevel:'beginner', planMuscles:new Set(['chest','lats','quadriceps']), planEquip:new Set(['body only','dumbbell','barbell','cable','machine','kettlebells','bands','other','None']) };
 
@@ -288,7 +324,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   // ---------- Tabs ----------
   document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
     document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x===b));
-    ['library','plan','combo','program','workout','history'].forEach(id=>$('#'+id).hidden = id!==b.dataset.tab);
+    ['library','plan','combo','program','workout','history','settings'].forEach(id=>$('#'+id).hidden = id!==b.dataset.tab);
     if(b.dataset.tab==='combo') renderComboTab();
     if(b.dataset.tab==='program') renderProgramTab();
     if(b.dataset.tab==='workout') renderWorkout();
@@ -301,6 +337,8 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   }
   const muscles = [...new Set(EX.flatMap(x=>x.primaryMuscles||[]))].sort();
   const equips = [...new Set(EX.map(x=>x.equipment||'None'))].sort();
+  let favourites = new Set(load(FAV_KEY, []));
+  let onlyFavourites = false;
   fillSelect($('#muscleSel'), muscles.map(m=>[m,muscleName(m)]), 'Mọi nhóm cơ');
   fillSelect($('#equipSel'), equips.map(e=>[e,equipName(e)]), 'Mọi dụng cụ');
 
@@ -315,6 +353,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   $('#search').oninput = e=>{ st.q=e.target.value.trim().toLowerCase(); renderLibrary(); };
   $('#muscleSel').onchange = e=>{ st.muscle=e.target.value; renderLibrary(); };
   $('#equipSel').onchange = e=>{ st.equip=e.target.value; renderLibrary(); };
+  $('#favFilter').onclick = ()=>{ onlyFavourites=!onlyFavourites; $('#favFilter').classList.toggle('on',onlyFavourites); $('#favFilter').textContent=onlyFavourites?'★ Đang xem yêu thích':'☆ Chỉ xem yêu thích'; renderLibrary(); };
 
   function filtered(){
     return EX.filter(x=>{
@@ -322,6 +361,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
       if(st.muscle && !(x.primaryMuscles||[]).includes(st.muscle) && !(x.secondaryMuscles||[]).includes(st.muscle)) return false;
       if(st.equip && (x.equipment||'None')!==st.equip) return false;
       if(st.q && !(x.name.toLowerCase().includes(st.q))) return false;
+      if(onlyFavourites && !favourites.has(x.id)) return false;
       return true;
     });
   }
@@ -332,6 +372,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
     const show = list.slice(0,200);
     $('#grid').innerHTML = show.length ? show.map((x,i)=>`
       <div class="card" style="--i:${i}" data-id="${esc(x.id)}">
+        <button class="fav ${favourites.has(x.id)?'on':''}" data-fav="${esc(x.id)}" aria-label="${favourites.has(x.id)?'Bỏ yêu thích':'Thêm yêu thích'}">${favourites.has(x.id)?'★':'☆'}</button>
         <img src="${esc(imgSrc(x))}" alt="${esc(x.name)}" loading="lazy">
         <div class="b">
           <div class="n">${esc(x.name)}</div>
@@ -342,9 +383,16 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
     if(list.length>200) $('#grid').insertAdjacentHTML('beforeend',`<div class="empty" style="grid-column:1/-1">Đang hiển thị 200/${list.length}. Hãy lọc thêm để thu hẹp.</div>`);
   }
   $('#grid').onclick = e=>{
+    const f = e.target.closest('[data-fav]');
+    if(f){ e.stopPropagation(); toggleFavourite(f.dataset.fav); return; }
     const c = e.target.closest('.card'); if(!c) return;
     openDetail(c.dataset.id);
   };
+  function toggleFavourite(id){
+    favourites.has(id) ? favourites.delete(id) : favourites.add(id);
+    save(FAV_KEY, [...favourites]);
+    renderLibrary();
+  }
 
   // ---------- Detail modal with animated illustration ----------
   let animTimer = null;
@@ -354,7 +402,8 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
     const imgs = x.images && x.images.length ? x.images : [''];
     $('#sheet').innerHTML = `
       <button class="close" id="closeModal">×</button>
-      <h2 style="margin:0 0 8px;font-size:18px;padding-right:24px">${esc(x.name)}</h2>
+      <button class="close" id="favModal" title="${favourites.has(x.id)?'Bỏ yêu thích':'Thêm yêu thích'}" style="right:45px;color:${favourites.has(x.id)?'var(--gold)':'var(--muted)'}">${favourites.has(x.id)?'★':'☆'}</button>
+      <h2 style="margin:0 0 8px;font-size:18px;padding-right:70px">${esc(x.name)}</h2>
       <div class="row" style="margin-bottom:10px">${levelTag(x.level)}<span class="tag">${esc(equipName(x.equipment))}</span><span class="tag">${esc(x.category||'')}</span></div>
       <img id="demoImg" src="${esc(imgs[0])}" alt="${esc(x.name)}">
       <div class="muted" style="text-align:center;font-size:12px;margin-top:4px">${imgs.length>1?'Đang chuyển khung minh họa...':''}</div>
@@ -364,6 +413,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
       <div class="muted" style="font-size:12px">Nội dung gốc bằng tiếng Anh.</div>`;
     $('#modal').classList.add('open');
     $('#closeModal').onclick = closeModal;
+    $('#favModal').onclick = ()=>{ toggleFavourite(x.id); openDetail(x.id); };
     if(imgs.length>1){
       let i=0; const el=$('#demoImg');
       animTimer = setInterval(()=>{ i=(i+1)%imgs.length; el.src=imgs[i]; },800);
@@ -427,20 +477,59 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   function beep(){ try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){} }
 
   function getLog(){ return load(LS_KEY, {}); }
-  // Gợi ý buổi sau: nếu đạt đủ reps ở mọi set thì tăng tạ 2.5kg (hoặc +1 reps nếu không tạ)
-  function suggest(exId, plan){
-    const hist = (getLog()[exId]||[]);
-    if(!hist.length) return {weight:'', text:'Chưa có dữ liệu, hãy bắt đầu với mức tạ nhẹ.'};
-    const last = hist[hist.length-1];
-    const sets = last.sets.filter(s=>s.r);
-    if(!sets.length) return {weight:last.weight||'', text:'Giữ nguyên mức tạ buổi trước.'};
-    const allHit = sets.length>=plan.sets && sets.every(s=>s.r>=plan.reps);
-    const w = parseFloat(last.weight)||0;
-    if(allHit){
-      if(w>0) return {weight:+(w+2.5).toFixed(1), text:`Đạt đủ ${plan.reps} reps mọi set → tăng lên ${+(w+2.5).toFixed(1)} kg.`};
-      return {weight:'', text:`Đạt đủ reps → thử tăng thêm 1-2 reps hoặc độ khó.`};
+  // Double progression + ước tính 1RM. Cách đọc này giữ tương thích với nhật ký v1 cũ.
+  const REP_RANGE = {beginner:4, intermediate:4, expert:3};
+  const PLATES_KG = [20,15,10,5,2.5,1.25];
+  function estimate1RM(weight, reps){
+    const w=Number(weight), r=Number(reps);
+    if(!Number.isFinite(w)||!Number.isFinite(r)||w<=0||r<1||r>15) return null;
+    if(r===1) return Math.round(w*10)/10;
+    const formulas=[w*(1+r/30), w*36/(37-r), w*Math.pow(r,.1), w*(1+r/40), (w*100)/(52.2+41.9*Math.exp(-.055*r)), (w*100)/(48.8+53.8*Math.exp(-.075*r)), (w*100)/(101.3-2.67123*r)];
+    return Math.round((formulas.reduce((a,v)=>a+v,0)/formulas.length)*10)/10;
+  }
+  function best1RM(exId){
+    const entries=getLog()[exId]||[]; let best=null;
+    entries.forEach(entry=>(entry.sets||[]).forEach(s=>{
+      const est=estimate1RM(s.w,s.r);
+      if(est && (!best || est>best.value)) best={value:est,weight:s.w,reps:s.r,date:entry.date};
+    }));
+    return best;
+  }
+  function plateStack(weight){
+    const w=Number(weight)||0;
+    if(w<20) return {text:'Thanh đòn / tạ nền', missing:0};
+    let left=Math.round(((w-20)/2)*4)/4, out=[];
+    PLATES_KG.forEach(p=>{ while(left>=p-0.001){out.push(p); left=Math.round((left-p)*4)/4;} });
+    return left>0.001 ? {text:out.length?`${out.join(' + ')} kg mỗi bên`:'Chỉ thanh đòn',missing:left} : {text:out.length?`${out.join(' + ')} kg mỗi bên`:'Chỉ thanh đòn',missing:0};
+  }
+  function progression(exId, plan){
+    const hist=getLog()[exId]||[];
+    if(!hist.length) return {weight:'', nextReps:plan.reps, text:'Chưa có dữ liệu, hãy bắt đầu với mức tạ nhẹ.'};
+    const last=hist[hist.length-1], sets=(last.sets||[]).filter(s=>Number(s.r)>0);
+    if(!sets.length) return {weight:last.weight||'', nextReps:plan.reps, text:'Chưa đủ dữ liệu, giữ mức hiện tại.'};
+    const base=Math.max(1, plan.reps-(REP_RANGE[plan.level]||4));
+    const top=plan.reps, maxRep=Math.max(...sets.map(s=>Number(s.r)||0));
+    const allAtTop=sets.length>=plan.sets && sets.every(s=>s.r>=top);
+    const allAtBase=sets.length>=plan.sets && sets.every(s=>s.r>=base);
+    const weight=Number(last.weight)||0;
+    const recent=hist.slice(-3).filter(h=>(h.sets||[]).length>0);
+    const stalled=recent.length===3 && recent.every(h=>Math.max(...h.sets.map(s=>Number(s.r)||0))<top);
+    if(stalled && weight>0){
+      const reduced=Math.max(0,Math.round((weight*.9)/2.5)*2.5);
+      return {weight:reduced,nextReps:base,kind:'deload',text:`Đang chững 3 buổi → giảm tải 10%, tập lại từ ${base} reps.`};
     }
-    return {weight:w||'', text:`Chưa đạt đủ ${plan.reps} reps → giữ nguyên mức tạ và cố gắng hơn.`};
+    if(allAtTop){
+      const next=weight>0?+(weight+2.5).toFixed(1):'';
+      return {weight:next,nextReps:base,text:weight?`Đạt ${top} reps mọi set → tăng lên ${next} kg, bắt đầu lại ${base} reps.`:`Đạt đủ reps → tăng độ khó hoặc thêm 1–2 reps.`};
+    }
+    if(allAtBase){
+      const next=Math.min(top,maxRep+1);
+      return {weight:weight||'',nextReps:next,text:`Giữ tạ và tăng dần lên ${next} reps trong khoảng ${base}–${top}.`};
+    }
+    return {weight:weight||'',nextReps:base,text:`Chưa đạt ${base} reps mọi set → giữ nguyên mức tạ.`};
+  }
+  function suggest(exId, plan){
+    return progression(exId, plan);
   }
 
   function renderWorkout(){
@@ -452,13 +541,16 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
       ${plan.items.map((p,idx)=>{
         const x=EX.find(e=>e.id===p.ex); if(!x) return '';
         if(p.cardio) return `<div class="exercise-log"><div class="hd"><img src="${esc(imgSrc(x))}" alt=""><div><div style="font-weight:600">${idx+1}. ${esc(x.name)}</div><div class="muted">Tim mạch · ${esc(p.method)}: ${esc(p.detail)}</div></div></div></div>`;
-        const eff={sets:p.sets||plan.sets, reps:p.reps||plan.reps}; const s=suggest(x.id, eff);
-        const weightField = x.equipment==='body only' ? '' : `
-          <div class="sug">${esc(s.text)}</div>`;
+        const eff={sets:p.sets||plan.sets, reps:p.reps||plan.reps, level:plan.level||'beginner'}; const s=suggest(x.id, eff);
+        const targetReps=s.nextReps||eff.reps;
+        const weightField = `<div class="sug">${esc(s.text)}${s.weight?` · Gợi ý ${esc(s.weight)} kg`:''}</div>`;
+        const rm=best1RM(x.id);
+        const strengthField=rm?`<div class="muted" style="margin:6px 0">1RM ước tính: <b style="color:var(--gold)">${rm.value} kg</b> từ ${rm.weight} kg × ${rm.reps} reps</div>`:'';
+        const plateField=x.equipment==='barbell' && s.weight ? (()=>{const q=plateStack(s.weight); return `<div class="muted" style="margin:6px 0">Đĩa tạ: <b style="color:var(--gold)">${esc(q.text)}</b>${q.missing?` · thiếu ${q.missing} kg`:''}</div>`})():'';
         const rows = Array.from({length:eff.sets},(_,i)=>`
           <tr><td>Set ${i+1}</td>
           <td>${x.equipment==='body only'?'—':`<input type="number" inputmode="decimal" min="0" step="0.5" data-ex="${esc(x.id)}" data-f="w" data-set="${i}" value="${(p.weight!=null?p.weight:s.weight)||''}" placeholder="kg">`}</td>
-          <td><input type="number" inputmode="numeric" min="0" data-ex="${esc(x.id)}" data-f="r" data-set="${i}" placeholder="${eff.reps}"></td>
+          <td><input type="number" inputmode="numeric" min="0" data-ex="${esc(x.id)}" data-f="r" data-set="${i}" placeholder="${targetReps}"></td>
           <td><button class="btn ghost" data-rest="${p.rest||plan.rest}" style="padding:6px 10px">Nghỉ</button></td></tr>`).join('');
         return `
         <div class="exercise-log" data-ex-card="${esc(x.id)}">
@@ -467,6 +559,7 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
             <div><div style="font-weight:600">${idx+1}. ${esc(x.name)}</div><div class="muted">${esc(muscleName(p.muscle))} · ${esc(equipName(x.equipment))}</div></div>
           </div>
           ${weightField}
+          ${strengthField}${plateField}
           <table><thead><tr><th>Set</th><th>Tạ (kg)</th><th>Reps</th><th></th></tr></thead><tbody>${rows}</tbody></table>
         </div>`;}).join('')}
       <div class="row" style="margin-top:6px"><button class="btn" id="finishBtn">Hoàn thành buổi tập</button></div>`;
@@ -508,10 +601,11 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
     $('#historyOut').innerHTML = ids.map(id=>{
       const x=EX.find(e=>e.id===id); if(!x) return '';
       const entries = log[id].slice().reverse().slice(0,10);
+      const rm=best1RM(id);
       return `<div class="exercise-log">
-        <div style="font-weight:600;margin-bottom:6px">${esc(x.name)}</div>
-        <table><thead><tr><th>Ngày</th><th>Tạ max</th><th>Sets (kg×reps)</th></tr></thead><tbody>
-        ${entries.map(e=>`<tr><td>${new Date(e.date).toLocaleDateString('vi-VN')}</td><td>${e.weight||'—'}</td><td>${e.sets.map(s=>`${s.w||'—'}×${s.r}`).join(' · ')}</td></tr>`).join('')}
+        <div style="font-weight:600;margin-bottom:6px">${esc(x.name)}${rm?` <span class="tag">1RM ${rm.value} kg</span>`:''}</div>
+        <table><thead><tr><th>Ngày</th><th>Tạ max</th><th>1RM buổi</th><th>Sets (kg×reps)</th></tr></thead><tbody>
+        ${entries.map(e=>{const er=(e.sets||[]).map(s=>estimate1RM(s.w,s.r)).filter(Boolean); const one=er.length?Math.max(...er):null; return `<tr><td>${new Date(e.date).toLocaleDateString('vi-VN')}</td><td>${e.weight||'—'}</td><td>${one||'—'}</td><td>${e.sets.map(s=>`${s.w||'—'}×${s.r}`).join(' · ')}</td></tr>`}).join('')}
         </tbody></table></div>`;
     }).join('');
   }
@@ -976,6 +1070,47 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   $('#progOut').addEventListener('change', e=>{
     if(e.target.id==='pBw'){ profile.bw = +e.target.value || profile.bw; saveProfile(); }
   });
+
+  // ---------- Sao lưu / khôi phục dữ liệu ----------
+  function exportData(){
+    const data = {version:2, exportedAt:new Date().toISOString(), data:{}};
+    DATA_KEYS.forEach(k=>{ data.data[k]=load(k,null); });
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download=`gym-ai-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+  function importData(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const parsed=JSON.parse(reader.result);
+        const data=parsed && parsed.data;
+        if(!data || typeof data!=='object') throw new Error('invalid');
+        if(!confirm('Dữ liệu hiện tại sẽ được thay bằng bản sao này. Tiếp tục?')) return;
+        DATA_KEYS.forEach(k=>{
+          if(Object.prototype.hasOwnProperty.call(data,k) && data[k]!==null) save(k,data[k]);
+        });
+        favourites = new Set(load(FAV_KEY, []));
+        combos = load(COMBO_KEY, null) || freshPresets();
+        profile = load(PROFILE_KEY, profile);
+        program = load(PROG_KEY, null);
+        alert('Đã khôi phục dữ liệu.');
+        location.reload();
+      }catch(e){ alert('Tệp sao lưu không hợp lệ.'); }
+    };
+    reader.readAsText(file);
+  }
+  $('#exportBtn').onclick = exportData;
+  $('#importBtn').onclick = ()=>$('#importFile').click();
+  $('#importFile').onchange = e=>{ importData(e.target.files[0]); e.target.value=''; };
+  $('#clearDataBtn').onclick = ()=>{
+    if(!confirm('Xóa toàn bộ dữ liệu Gym AI trên trình duyệt này?')) return;
+    DATA_KEYS.forEach(k=>localStorage.removeItem(k));
+    location.reload();
+  };
 
   // ---------- Init ----------
   renderLevelChips();
