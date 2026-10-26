@@ -1,0 +1,3 @@
+Đặt các ảnh nhân vật nữ vào thư mục này.
+Tên file phải đúng với cột ten_file trong danh-sach-anh-nu.csv, ví dụ 3_4_Sit-Up.jpg.
+Chưa có ảnh nào thì app vẫn dùng ảnh minh họa nam.
