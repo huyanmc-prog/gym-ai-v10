@@ -128,6 +128,10 @@ td input{width:76px;padding:8px;min-width:0;font-size:14px}
 .dash-actions{display:flex;gap:10px;flex-wrap:wrap}.dash-actions .btn{flex:1;min-width:150px}
 .muscle-bars{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 20px}.muscle-bar{display:grid;grid-template-columns:100px 1fr 38px;gap:8px;align-items:center;font-size:12px}.muscle-bar label{color:#ddd5e8}.muscle-bar i{height:8px;border-radius:99px;background:#302244;overflow:hidden}.muscle-bar i:after{content:"";display:block;height:100%;width:var(--pct);background:linear-gradient(90deg,var(--purple),var(--teal));border-radius:inherit}.muscle-bar b{font-size:11px;color:var(--muted);text-align:right}
 .dash-list{display:grid;gap:8px}.dash-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid rgba(255,255,255,.07);border-radius:8px;background:rgba(255,255,255,.025)}
+.progress-nav{display:flex;gap:8px;overflow:auto;padding:4px;background:rgba(255,255,255,.035);border-radius:10px;margin-bottom:16px}.progress-nav button{flex:1;min-width:100px;border:0;border-radius:7px;padding:11px 10px;background:transparent;color:var(--muted);cursor:pointer;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.progress-nav button.on{background:var(--purple);color:#fff;box-shadow:0 6px 18px rgba(155,124,255,.25)}
+.progress-card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:14px}.progress-card h2{font-size:15px;margin:0 0 5px}.progress-card p{color:var(--muted);font-size:12px;line-height:1.55;margin:0 0 14px}.trend-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;align-items:end;height:170px}.trend-col{display:flex;height:100%;flex-direction:column;justify-content:end;align-items:center;gap:6px}.trend-col i{width:100%;max-width:34px;min-height:3px;height:var(--h);background:linear-gradient(180deg,var(--teal),var(--purple));border-radius:5px 5px 2px 2px}.trend-col b{font-size:10px;color:var(--text)}.trend-col span{font-size:9px;color:var(--muted)}
+.pr-table{width:100%;overflow:auto}.pr-table table{min-width:560px}.pr-up{color:var(--teal)}.goal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.goal-item{border:1px solid rgba(155,124,255,.25);border-radius:10px;padding:15px;background:rgba(155,124,255,.06)}.goal-item .goal-head{display:flex;justify-content:space-between;gap:8px;align-items:start}.goal-item h3{margin:0;font-size:14px}.goal-item small{color:var(--muted)}.goal-track{height:8px;background:#302244;border-radius:99px;overflow:hidden;margin:14px 0 8px}.goal-track i{display:block;height:100%;width:var(--pct);background:linear-gradient(90deg,var(--purple),var(--gold));border-radius:inherit}.goal-form{display:grid;grid-template-columns:1.4fr 1fr 100px auto;gap:8px;margin-top:12px}.goal-form input,.goal-form select{min-width:0}.year-calendar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.month-card{border:1px solid var(--line);border-radius:9px;padding:10px;background:rgba(255,255,255,.025)}.month-card h3{font-size:12px;text-transform:uppercase;letter-spacing:.12em;margin:0 0 8px;text-align:center;color:var(--text)}.month-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.month-days span{font-size:8px;text-align:center;color:var(--muted);padding:2px 0}.day-cell{aspect-ratio:1;border-radius:3px;background:#261b37;color:transparent;cursor:default;position:relative}.day-cell.empty{background:transparent}.day-cell[data-count="1"]{background:#385d58}.day-cell[data-count="2"]{background:#3c9887}.day-cell[data-count="3"]{background:#78c99d}.day-cell[data-count="4"]{background:var(--gold)}.day-cell:hover{outline:2px solid #fff}.calendar-detail{min-height:25px;color:var(--muted);font-size:12px;text-align:center;margin-top:12px}
+@media (max-width:700px){.year-calendar{grid-template-columns:repeat(2,1fr)}.goal-form{grid-template-columns:1fr 1fr}.goal-form button{grid-column:1/-1}.trend-grid{gap:4px}}
 @media (max-width:700px){.dash-stats{grid-template-columns:repeat(2,1fr)}.muscle-bars{grid-template-columns:1fr}.dash-hero{padding:22px 18px}}
 
 /* ===== Hero & nổi bật ===== */
@@ -187,6 +191,7 @@ h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transfo
   <p class="tagline">Tập luyện · Cấp độ · Tiến bộ</p>
   <nav id="tabs">
     <button data-tab="dashboard" class="active">Tổng quan</button>
+    <button data-tab="progress">Tiến bộ</button>
     <button data-tab="library">Thư viện</button>
     <button data-tab="plan">Tạo giáo án</button>
     <button data-tab="combo">Combo</button>
@@ -201,6 +206,11 @@ h2.section{font-family:inherit;font-weight:800;letter-spacing:.04em;text-transfo
   <!-- DASHBOARD -->
   <section id="dashboard">
     <div id="dashboardOut"></div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section id="progress" hidden>
+    <div id="progressOut"></div>
   </section>
 
   <!-- LIBRARY -->
@@ -325,7 +335,8 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   const LS_KEY = 'gymai.log.v1';
   const PLAN_KEY = 'gymai.plan.v1';
   const FAV_KEY = 'gymai.favourites.v1';
-  const DATA_KEYS = [LS_KEY, PLAN_KEY, 'gymai.combos.v2', 'gymai.profile.v1', 'gymai.program.v1', FAV_KEY];
+  const GOALS_KEY = 'gymai.goals.v1';
+  const DATA_KEYS = [LS_KEY, PLAN_KEY, 'gymai.combos.v2', 'gymai.profile.v1', 'gymai.program.v1', FAV_KEY, GOALS_KEY];
 
   const st = { level:'all', q:'', muscle:'', equip:'', planLevel:'beginner', planMuscles:new Set(['chest','lats','quadriceps']), planEquip:new Set(['body only','dumbbell','barbell','cable','machine','kettlebells','bands','other','None']) };
 
@@ -346,8 +357,9 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
   // ---------- Tabs ----------
   document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
     document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x===b));
-    ['dashboard','library','plan','combo','program','workout','history','settings'].forEach(id=>$('#'+id).hidden = id!==b.dataset.tab);
+    ['dashboard','progress','library','plan','combo','program','workout','history','settings'].forEach(id=>$('#'+id).hidden = id!==b.dataset.tab);
     if(b.dataset.tab==='dashboard') renderDashboard();
+    if(b.dataset.tab==='progress') renderProgress();
     if(b.dataset.tab==='combo') renderComboTab();
     if(b.dataset.tab==='program') renderProgramTab();
     if(b.dataset.tab==='workout') renderWorkout();
@@ -377,6 +389,41 @@ window.EXERCISES = [{"name": "3/4 Sit-Up", "force": "pull", "level": "beginner",
         <section class="dash-panel"><h2>Thao tác nhanh</h2><p>Chuyển thẳng tới nơi bạn cần.</p><div class="dash-actions"><button class="btn ghost" data-go="library">Khám phá bài tập</button><button class="btn ghost" data-go="combo">Dùng combo mẫu</button><button class="btn ghost" data-go="history">Xem lịch sử</button></div></section>
       </div>`;
   }
+
+  // ---------- Tiến triển, PRs, mục tiêu và lịch năm ----------
+  let progressView='trend';
+  let goals=load(GOALS_KEY,[]);
+  function allLogRows(){const rows=[]; Object.entries(getLog()).forEach(([id,es])=>(es||[]).forEach(e=>rows.push({...e,id}))); return rows;}
+  function weeklyStats(){
+    const now=Date.now(), rows=allLogRows();
+    return Array.from({length:8},(_,i)=>{const end=now-i*7*86400000,start=end-7*86400000; const es=rows.filter(e=>{const t=new Date(e.date).getTime();return t>=start&&t<end}); return {es,days:new Set(es.map(e=>new Date(e.date).toLocaleDateString('vi-VN'))).size,sets:es.reduce((n,e)=>n+(e.sets||[]).filter(s=>s.r>0).length,0),volume:es.reduce((n,e)=>n+(e.sets||[]).reduce((m,s)=>m+(Number(s.w)||0)*(Number(s.r)||0),0),0)};}).reverse();
+  }
+  function renderProgress(){
+    const tabs=[['trend','Tiến triển'],['prs','PRs'],['goals','Mục tiêu'],['calendar','Lịch năm']];
+    let body='';
+    if(progressView==='trend'){
+      const ws=weeklyStats(), max=Math.max(1,...ws.map(w=>w.sets));
+      body=`<div class="progress-card"><h2>Tiến triển 8 tuần</h2><p>Theo dõi số buổi, số set và khối lượng đã ghi nhận. Dữ liệu được tính hoàn toàn trên thiết bị.</p><div class="trend-grid">${ws.map((w,i)=>`<div class="trend-col"><i style="--h:${Math.max(3,w.sets/max*125)}px" title="${w.sets} set"></i><b>${w.sets}</b><span>T${i+1}</span></div>`).join('')}</div></div><div class="goal-grid">${ws.slice(-4).map((w,i)=>`<div class="progress-card"><h2>Tuần ${i+5}</h2><p>${w.days} buổi · ${w.sets} set · ${w.volume?Math.round(w.volume).toLocaleString('vi-VN'):'—'} kg×rep</p></div>`).join('')}</div>`;
+    } else if(progressView==='prs'){
+      const ids=[...new Set(allLogRows().map(e=>e.id))]; const prs=ids.map(id=>{const x=EX.find(e=>e.id===id),rm=best1RM(id);return rm&&x?{...rm,id,name:x.name}:null}).filter(Boolean).sort((a,b)=>b.value-a.value);
+      body=`<div class="progress-card"><h2>Kỷ lục cá nhân</h2><p>1RM ước tính cao nhất được lấy từ set tốt nhất của từng bài.</p><div class="pr-table"><table><thead><tr><th>Bài tập</th><th>1RM</th><th>Set tốt nhất</th><th>Ngày</th></tr></thead><tbody>${prs.length?prs.map(p=>`<tr><td>${esc(p.name)}</td><td class="pr-up"><b>${p.value} kg</b></td><td>${p.weight} kg × ${p.reps}</td><td>${new Date(p.date).toLocaleDateString('vi-VN')}</td></tr>`).join(''):'<tr><td colspan="4" class="muted">Chưa có PR. Hãy hoàn thành một set có nhập tạ và reps.</td></tr>'}</tbody></table></div></div>`;
+    } else if(progressView==='goals'){
+      const ws=weeklyStats().at(-1), current={workouts:ws.days,sets:ws.sets,volume:Math.round(ws.volume)};
+      const typeLabel={workouts:'buổi / tuần',sets:'set / tuần',volume:'kg×rep / tuần'};
+      body=`<div class="progress-card"><h2>Mục tiêu cá nhân</h2><p>Đặt mục tiêu tuần và theo dõi mức hoàn thành dựa trên nhật ký hiện tại.</p><div class="goal-grid">${goals.length?goals.map(g=>{const val=current[g.type]||0,pct=Math.min(100,Math.round(val/Math.max(1,g.target)*100));return `<div class="goal-item"><div class="goal-head"><div><h3>${esc(g.name)}</h3><small>${val.toLocaleString('vi-VN')} / ${Number(g.target).toLocaleString('vi-VN')} ${typeLabel[g.type]}</small></div><button class="close" style="position:static;font-size:20px" data-goal-del="${esc(g.id)}">×</button></div><div class="goal-track"><i style="--pct:${pct}%"></i></div><small>${pct}% hoàn thành tuần này</small></div>`}).join(''):'<div class="empty">Chưa có mục tiêu. Hãy tạo mục tiêu đầu tiên bên dưới.</div>'}</div><div class="goal-form"><input id="goalName" placeholder="Ví dụ: Tập đều 4 buổi"><select id="goalType"><option value="workouts">Số buổi</option><option value="sets">Số set</option><option value="volume">Khối lượng</option></select><input id="goalTarget" type="number" min="1" placeholder="Mục tiêu"><button class="btn" data-goal-add="1">Thêm mục tiêu</button></div></div>`;
+    } else {
+      const year=new Date().getFullYear(), rows=allLogRows(), counts={}; rows.forEach(e=>{const d=new Date(e.date);if(d.getFullYear()===year){const k=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;counts[k]=(counts[k]||0)+1;}});
+      const months=Array.from({length:12},(_,m)=>{const first=new Date(year,m,1),days=new Date(year,m+1,0).getDate(),offset=(first.getDay()+6)%7;let cells=Array(offset).fill('<i class="day-cell empty"></i>').join('');for(let d=1;d<=days;d++){const k=`${year}-${m}-${d}`,c=Math.min(4,counts[k]||0);cells+=`<i class="day-cell" data-count="${c}" data-date="${k}" title="${d}/${m+1}: ${counts[k]||0} bài ghi"></i>`}return `<div class="month-card"><h3>${first.toLocaleDateString('vi-VN',{month:'long'})}</h3><div class="month-days"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>${cells}</div></div>`}).join('');
+      body=`<div class="progress-card"><h2>Lịch tập năm ${year}</h2><p>Mỗi ô là số bài được ghi nhận trong ngày. Nhấn vào một ngày để xem chi tiết.</p><div class="year-calendar">${months}</div><div class="calendar-detail" id="calendarDetail">Chọn một ngày trên lịch.</div></div>`;
+    }
+    $('#progressOut').innerHTML=`<div class="progress-nav">${tabs.map(([id,label])=>`<button class="${progressView===id?'on':''}" data-progress-view="${id}">${label}</button>`).join('')}</div>${body}`;
+  }
+  $('#progressOut').addEventListener('click',e=>{
+    const tab=e.target.closest('[data-progress-view]'); if(tab){progressView=tab.dataset.progressView;renderProgress();return;}
+    const del=e.target.closest('[data-goal-del]'); if(del){goals=goals.filter(g=>g.id!==del.dataset.goalDel);save(GOALS_KEY,goals);renderProgress();return;}
+    const add=e.target.closest('[data-goal-add]'); if(add){const name=$('#goalName').value.trim(),target=Number($('#goalTarget').value);if(!name||!target){alert('Hãy nhập tên và giá trị mục tiêu.');return;}goals.push({id:'g'+Date.now(),name,type:$('#goalType').value,target});save(GOALS_KEY,goals);renderProgress();return;}
+    const day=e.target.closest('[data-date]'); if(day){const [y,m,d]=day.dataset.date.split('-').map(Number),label=new Date(y,m,d).toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),count=day.dataset.count;$('#calendarDetail').textContent=`${label}: ${count} bài ghi nhận.`;}
+  });
 
   // ---------- Library ----------
   function fillSelect(sel, items, allLabel){
